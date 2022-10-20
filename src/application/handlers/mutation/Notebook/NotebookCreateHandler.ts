@@ -25,11 +25,16 @@ export const NotebookCreateHandler: MutationHandlerFunc<
         name: `${payload.name}-${v4()}`,
       };
 
-      await CloudStorage.upload(thumbnail, EPictureFolder.NOTEBOOK_THUMBNAIL);
+      await CloudStorage.upload(
+        thumbnail,
+        EPictureFolder.NOTEBOOK_THUMBNAIL,
+        payload.name
+      );
 
       return await CloudStorage.getDownloadURL(
         thumbnail.name,
-        EPictureFolder.NOTEBOOK_THUMBNAIL
+        EPictureFolder.NOTEBOOK_THUMBNAIL,
+        payload.name
       );
     };
 
@@ -60,6 +65,7 @@ export const NotebookCreateHandler: MutationHandlerFunc<
 
     return { created: notebook.name };
   } catch (error) {
+    console.log(error);
     throw new GraphQLError(JSON.stringify(formatError(error)));
   }
 };
