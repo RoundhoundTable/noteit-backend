@@ -1,7 +1,6 @@
 import admin from "firebase-admin";
 import { initializeApp, getApps, FirebaseOptions } from "firebase/app";
 import { getStorage } from "firebase/storage";
-import serviceAccount from "./serviceAccount.json";
 import dotenv from "dotenv";
 
 dotenv.config();
