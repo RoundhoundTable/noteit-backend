@@ -1,4 +1,4 @@
-import { Note, PrismaClient, User } from "@prisma/client";
+import { Note, PrismaClient, Roles, User } from "@prisma/client";
 import { GraphQLError } from "graphql";
 import { DeleteResult, MutationHandlerFunc } from "../../../types/Handlers";
 import { formatError } from "../../../validation/formatError";
@@ -25,7 +25,35 @@ export const NoteDeleteHandler: MutationHandlerFunc<
     });
 
     if (!note) throw new GraphQLError("Not Found");
-    if (user.username !== note.user.username)
+
+    const ownerMembership = await prisma.membership.findUnique({
+      where: {
+        username_notebookName: {
+          notebookName: note.notebookName,
+          username: note.username,
+        },
+      },
+    });
+
+    const deleterMembership = await prisma.membership.findUnique({
+      where: {
+        username_notebookName: {
+          notebookName: note.notebookName,
+          username: user.username,
+        },
+      },
+    });
+
+    if (!ownerMembership || !deleterMembership)
+      throw new GraphQLError("Not found");
+
+    if (
+      user.username !== note.user.username &&
+      !(
+        deleterMembership.role === Roles.MODERATOR ||
+        deleterMembership.role === Roles.OWNER
+      )
+    )
       throw new GraphQLError("Forbidden");
 
     const deleted = await prisma.note.delete({
@@ -36,6 +64,7 @@ export const NoteDeleteHandler: MutationHandlerFunc<
 
     return { deleted: Boolean(deleted) };
   } catch (error) {
+    console.log(error);
     throw new GraphQLError(JSON.stringify(formatError(error)));
   }
 };
