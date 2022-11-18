@@ -26,15 +26,6 @@ export const NoteDeleteHandler: MutationHandlerFunc<
 
     if (!note) throw new GraphQLError("Not Found");
 
-    const ownerMembership = await prisma.membership.findUnique({
-      where: {
-        username_notebookName: {
-          notebookName: note.notebookName,
-          username: note.username,
-        },
-      },
-    });
-
     const deleterMembership = await prisma.membership.findUnique({
       where: {
         username_notebookName: {
@@ -43,9 +34,6 @@ export const NoteDeleteHandler: MutationHandlerFunc<
         },
       },
     });
-
-    if (!ownerMembership || !deleterMembership)
-      throw new GraphQLError("Not found");
 
     if (
       user.username !== note.user.username &&
